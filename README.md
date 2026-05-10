@@ -4,28 +4,7 @@ A self-service platform for spinning up isolated temporary environments, monitor
 
 ## Architecture
 
-![DevOps Sandbox Architecture](assets/architecture.png)
-┌─────────────────────────────────────────────────────────────┐
-│                        AWS EC2 VM                           │
-│                                                             │
-│  ┌──────────┐      ┌──────────────────────────────────┐    │
-│  │  Client  │─────▶│        Nginx  (port 80)           │    │
-│  └──────────┘      │  Dynamic routing via conf.d/      │    │
-│                    └──────────────┬───────────────────┘    │
-│                                   │ proxy_pass              │
-│   ┌───────────────────────────────▼─────────────────────┐  │
-│   │               Docker Environments                    │  │
-│   │   ┌──────────┐  ┌──────────┐  ┌──────────┐         │  │
-│   │   │ env-001  │  │ env-002  │  │ env-003  │  ...    │  │
-│   │   │ port 3000│  │ port 3001│  │ port 3002│         │  │
-│   │   └──────────┘  └──────────┘  └──────────┘         │  │
-│   └─────────────────────────────────────────────────────┘  │
-│                                                             │
-│   ┌─────────────┐  ┌──────────────┐  ┌─────────────────┐  │
-│   │  FastAPI    │  │Health Poller │  │ Cleanup Daemon  │  │
-│   │  port 8000  │  │  every 30s   │  │   every 60s     │  │
-│   └─────────────┘  └──────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+![DevOps Sandbox Architecture](assets/devops_sandbox_architecture.png)
 
 ## How It Works
 
