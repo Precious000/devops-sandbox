@@ -3,6 +3,8 @@
 A self-service platform for spinning up isolated temporary environments, monitoring their health, simulating outages, and destroying everything automatically. Think of it as a miniature internal Heroku with a chaos engineering toggle. Every environment is short-lived by design. If a reviewer cannot spin it up with one command, it does not count.
 
 ## Architecture
+
+![DevOps Sandbox Architecture](assets/architecture.png)
 ┌─────────────────────────────────────────────────────────────┐
 │                        AWS EC2 VM                           │
 │                                                             │
