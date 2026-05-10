@@ -29,12 +29,15 @@ for name in $PROTECTED; do
     fi
 done
 
-if ! docker ps --format '{{.Names}}' | grep -q "^$ENV_ID$"; then
-    echo "✗ Container $ENV_ID is not running"
-    exit 1
+# ── Skip running check for recover mode ───────────────────────────────────────
+if [ "$MODE" != "recover" ]; then
+    if ! docker ps --format '{{.Names}}' | grep -q "^$ENV_ID$"; then
+        echo "✗ Container $ENV_ID is not running"
+        exit 1
+    fi
 fi
 
-echo "→ Simulating $MODE outage on $ENV_ID"
+echo "→ Simulating $MODE on $ENV_ID"
 
 case "$MODE" in
     crash)
@@ -53,19 +56,32 @@ case "$MODE" in
         echo "✓ Container disconnected from all networks"
         ;;
     recover)
+        echo "→ Attempting recovery for $ENV_ID..."
+
+        # Unpause if paused
         docker unpause "$ENV_ID" 2>/dev/null || true
 
+        # Restart if stopped or killed
         if ! docker ps --format '{{.Names}}' | grep -q "^$ENV_ID$"; then
-            docker start "$ENV_ID" 2>/dev/null || true
+            echo "  Container is stopped — restarting..."
+            docker start "$ENV_ID"
+            sleep 3
         fi
 
+        # Reconnect to network if disconnected
         STATE_FILE="$ROOT_DIR/envs/$ENV_ID.json"
         if [ -f "$STATE_FILE" ]; then
             NET=$(python3 -c "import json; print(json.load(open('$STATE_FILE'))['id'])")
             docker network connect "$NET" "$ENV_ID" 2>/dev/null || true
         fi
 
-        echo "✓ Recovery attempted for $ENV_ID"
+        # Confirm
+        if docker ps --format '{{.Names}}' | grep -q "^$ENV_ID$"; then
+            echo "✓ Recovery successful — container is running"
+        else
+            echo "✗ Recovery failed — container could not be restarted"
+            exit 1
+        fi
         ;;
     *)
         echo "✗ Unknown mode: $MODE. Use crash|pause|network|recover"
